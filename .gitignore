@@ -1,0 +1,5 @@
+*.dll
+x64/*
+Debug/*
+.vs/*
+*.vcxproj.user
