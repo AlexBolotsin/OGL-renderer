@@ -3,7 +3,7 @@
 Shader::Shader()
 {
     shaderID = 0;
-    uniformModel = uniformProjection = 0;
+    uniformModel = uniformProjection = uniformView = 0;
 }
 
 Shader::~Shader()
@@ -80,6 +80,7 @@ void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 
     uniformModel = glGetUniformLocation(shaderID, "model");
     uniformProjection = glGetUniformLocation(shaderID, "projection");
+    uniformView = glGetUniformLocation(shaderID, "view");
 }
 
 void Shader::AddShader(const char* shaderCode, GLenum shaderType)

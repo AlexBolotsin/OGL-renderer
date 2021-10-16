@@ -1,7 +1,11 @@
+#define STB_IMAGE_IMPLEMENTATION
+
 #include <vector>
 
+#include "Texture.h"
 #include "Shader.h"
 #include "Mesh.h"
+#include "Camera.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -37,6 +41,9 @@ float triOffset = 0.0f;
 float triMamOffset = 0.7f;
 float triIncrement = 0.005f;
 
+GLfloat deltaTime = 0.f;
+GLfloat lastTime = 0.f;
+
 const char shaderVS[] = "shaders/shader.vert";
 
 const char shaderFS[] = "shaders/shader.frag";
@@ -58,14 +65,14 @@ void CreateObjects()
     };
 
     GLfloat vertices[] = {
-        -1.0f, -1.0f, 0.0f,
-        0.f, -1.0f, 1.0f,
-        1.0f, -1.0f, 0.0f,
-        0.0f, 1.0f, 0.0f
+        -1.0f, -1.0f, 0.0f, 0.f, 0.f,
+        0.f, -1.0f, 1.0f, 0.5f, 0.f,
+        1.0f, -1.0f, 0.0f, 1.f, 0.f,
+        0.0f, 1.0f, 0.0f, 0.5f, 1.f
     };
 
     Mesh* obj = new Mesh();
-    obj->CreateMesh(vertices, indices, 12, 12);
+    obj->CreateMesh(vertices, indices, 20, 12);
     meshStorage.push_back(obj);
 }
 
@@ -98,7 +105,13 @@ int main()
     CreateObjects();
     CreateShaders();
 
-    glm::mat4 projection = glm::perspective(90.f, (GLfloat)WIDTH/HEIGHT, 0.1f, 100.f);
+    Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 1.0f);
+    Texture brickTex("assets/brickwork.png");
+    brickTex.LoadTexture();
+    Texture dirtTex("assets/dirt.png");
+    dirtTex.LoadTexture();
+
+    glm::mat4 projection = glm::perspective(45.f, (GLfloat)WIDTH/HEIGHT, 0.1f, 100.f);
 
     float curAngle = 0.f;
     bool sizeDirection = true;
@@ -107,7 +120,14 @@ int main()
 
     while (!mainWindow.ShouldClose())
     {
+        GLfloat now = (float)glfwGetTime();
+        deltaTime = now - lastTime;
+        lastTime = now;
+
         glfwPollEvents();
+
+        camera.KeysControl(mainWindow.GetKeys(), deltaTime);
+        camera.MouseControl(mainWindow.GetXChange(), mainWindow.GetYChange());
 
         triOffset += direction ? triIncrement : -triIncrement;
 
@@ -137,6 +157,8 @@ int main()
 
         glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(shader->GetProjectionUniform(), 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(shader->GetViewUniform(), 1, GL_FALSE, glm::value_ptr(camera.CalculateViewMatrix()));
+        dirtTex.UseTexture();
 
         for (Mesh* mesh : meshStorage)
         {
