@@ -11,6 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "GLWindow.h"
+#include "Light.h"
 
 
 float Q_rsqrt(float number)
@@ -55,6 +56,48 @@ void CreateShaders()
     shaderList.push_back(shader1);
 }
 
+void CalcAverageNormals(unsigned int* indeces, unsigned int indiceCount,
+    GLfloat* vertices, unsigned int verticeCount, unsigned int vLength, unsigned int normalOffset)
+{
+    for (int i = 0; i < indiceCount; i += 3)
+    {
+        unsigned int in0 = indeces[i] * vLength;
+        unsigned int in1 = indeces[i + 1] * vLength;
+        unsigned int in2 = indeces[i + 2] * vLength;
+
+        glm::vec3 v1(vertices[in1] - vertices[in0], vertices[in1 + 1] - vertices[in0 + 1], vertices[in1 + 2] - vertices[in0 + 2]);
+        glm::vec3 v2(vertices[in2] - vertices[in0], vertices[in2 + 1] - vertices[in0 + 1], vertices[in2 + 2] - vertices[in0 + 2]);
+
+        glm::vec3 normal = glm::normalize(glm::cross(v1, v2));
+
+
+        in0 += normalOffset;
+        in1 += normalOffset;
+        in2 += normalOffset;
+
+        vertices[in0] += normal.x;
+        vertices[in0 + 1] += normal.y;
+        vertices[in0 + 2] += normal.z;
+
+        vertices[in1] += normal.x;
+        vertices[in1 + 1] += normal.y;
+        vertices[in1 + 2] += normal.z;
+
+        vertices[in2] += normal.x;
+        vertices[in2 + 1] += normal.y;
+        vertices[in2 + 2] += normal.z;
+    }
+
+    for (int i = 0; i < verticeCount / vLength; i++)
+    {
+        unsigned int nOffset = i * vLength + normalOffset;
+        glm::vec3 vec(vertices[nOffset], vertices[nOffset + 1], vertices[nOffset + 2]);
+        vertices[nOffset] = vec.x;
+        vertices[nOffset + 1] = vec.y;
+        vertices[nOffset + 2] = vec.z;
+    }
+}
+
 void CreateObjects()
 {
     GLuint indices[] = {
@@ -65,14 +108,16 @@ void CreateObjects()
     };
 
     GLfloat vertices[] = {
-        -1.0f, -1.0f, 0.0f, 0.f, 0.f,
-        0.f, -1.0f, 1.0f, 0.5f, 0.f,
-        1.0f, -1.0f, 0.0f, 1.f, 0.f,
-        0.0f, 1.0f, 0.0f, 0.5f, 1.f
+        -1.0f, -1.0f, 0.0f,     0.f, 0.f,       0.0f, 0.0f, 0.0f,
+        0.f, -1.0f, 1.0f,       0.5f, 0.f,      0.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 0.0f,      1.f, 0.f,       0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,       0.5f, 1.f,      0.0f, 0.0f, 0.0f
     };
 
+    CalcAverageNormals(indices, 12, vertices, 32, 8, 5);
+
     Mesh* obj = new Mesh();
-    obj->CreateMesh(vertices, indices, 20, 12);
+    obj->CreateMesh(vertices, indices, 32, 12);
     meshStorage.push_back(obj);
 }
 
@@ -110,6 +155,8 @@ int main()
     brickTex.LoadTexture();
     Texture dirtTex("assets/dirt.png");
     dirtTex.LoadTexture();
+    Light mainLight(1.f, 1.f, 1.f, 1.f,
+        2.0f, -1.0f, -2.f, 1.0f);
 
     glm::mat4 projection = glm::perspective(45.f, (GLfloat)WIDTH/HEIGHT, 0.1f, 100.f);
 
@@ -151,14 +198,16 @@ int main()
         shader->UseShader();
 
         glm::mat4 model(1.0f);
-        model = glm::translate(model, glm::vec3(0.f, triOffset, -2.5f));
-        model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.f, 1.f, 0.0f));
+        //model = glm::translate(model, glm::vec3(0.f, triOffset, -2.5f));
+        //model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.f, 1.f, 0.0f));
         model = glm::scale(model, glm::vec3(curSize, curSize, curSize));
 
         glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(shader->GetProjectionUniform(), 1, GL_FALSE, glm::value_ptr(projection));
         glUniformMatrix4fv(shader->GetViewUniform(), 1, GL_FALSE, glm::value_ptr(camera.CalculateViewMatrix()));
-        dirtTex.UseTexture();
+        brickTex.UseTexture();
+        mainLight.UseLight(shader->GetAmbientIntensityLocation(), shader->GetAmbientColorLocation(),
+            shader->GetDiffuseIntensityUniform(), shader->GetDirectionUniform());
 
         for (Mesh* mesh : meshStorage)
         {

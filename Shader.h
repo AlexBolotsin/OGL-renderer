@@ -19,12 +19,23 @@ public:
     GLuint GetProjectionUniform() const { return uniformProjection; }
     GLuint GetModelUniform() const { return uniformModel; }
     GLuint GetViewUniform() const { return uniformView; }
+    GLuint GetAmbientIntensityLocation() const { return uniformAmbientIntensity; }
+    GLuint GetAmbientColorLocation() const { return uniformAmbientColor; }
+    GLuint GetDiffuseIntensityUniform() const { return uniformDiffuseIntensity; }
+    GLuint GetDirectionUniform() const { return uniformDirection; }
 
     void UseShader();
     void ClearShader();
 
 private:
-    GLuint shaderID, uniformProjection, uniformModel, uniformView;
+    GLuint shaderID,
+        uniformProjection,
+        uniformModel,
+        uniformView,
+        uniformAmbientIntensity,
+        uniformAmbientColor,
+        uniformDiffuseIntensity,
+        uniformDirection;
 
     void CompileShader(const char* vertexCode, const char* fragmentCode);
     void AddShader(const char* shaderCode, GLenum shaderType);
