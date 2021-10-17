@@ -154,6 +154,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="GLWindow.cpp" />
     <ClCompile Include="Light.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="OpenGLStudy.cpp" />
     <ClCompile Include="Shader.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="GLWindow.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stb_image.h" />

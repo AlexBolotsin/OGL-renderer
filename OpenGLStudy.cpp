@@ -6,6 +6,7 @@
 #include "Shader.h"
 #include "Mesh.h"
 #include "Camera.h"
+#include "Material.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -34,7 +35,7 @@ float Q_rsqrt(float number)
 std::vector<Mesh*> meshStorage;
 std::vector<Shader*> shaderList;
 
-const int WIDTH = 800, HEIGHT = 600;
+const int WIDTH = 1366, HEIGHT = 768;
 const float toRadians = 3.14159265f / 180.f;
 
 bool direction = true;
@@ -108,9 +109,9 @@ void CreateObjects()
     };
 
     GLfloat vertices[] = {
-        -1.0f, -1.0f, 0.0f,     0.f, 0.f,       0.0f, 0.0f, 0.0f,
+        -1.0f, -1.0f, -0.6f,     0.f, 0.f,       0.0f, 0.0f, 0.0f,
         0.f, -1.0f, 1.0f,       0.5f, 0.f,      0.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, 0.0f,      1.f, 0.f,       0.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 0.6f,      1.f, 0.f,       0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,       0.5f, 1.f,      0.0f, 0.0f, 0.0f
     };
 
@@ -150,13 +151,16 @@ int main()
     CreateObjects();
     CreateShaders();
 
-    Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 1.0f);
+    Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 5.0f, 0.5f);
     Texture brickTex("assets/brickwork.png");
     brickTex.LoadTexture();
     Texture dirtTex("assets/dirt.png");
     dirtTex.LoadTexture();
     Light mainLight(1.f, 1.f, 1.f, 1.f,
-        2.0f, -1.0f, -2.f, 1.0f);
+        2.0f, -1.0f, -2.f, 0.3f);
+
+    Material shinyMat(1.f, 32);
+    Material dullMat(0.3f, 4);
 
     glm::mat4 projection = glm::perspective(45.f, (GLfloat)WIDTH/HEIGHT, 0.1f, 100.f);
 
@@ -197,15 +201,19 @@ int main()
         Shader* shader = shaderList[0];
         shader->UseShader();
 
-        glm::mat4 model(1.0f);
-        //model = glm::translate(model, glm::vec3(0.f, triOffset, -2.5f));
-        //model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.f, 1.f, 0.0f));
-        model = glm::scale(model, glm::vec3(curSize, curSize, curSize));
-
-        glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(shader->GetProjectionUniform(), 1, GL_FALSE, glm::value_ptr(projection));
         glUniformMatrix4fv(shader->GetViewUniform(), 1, GL_FALSE, glm::value_ptr(camera.CalculateViewMatrix()));
+        glm::vec3 camPos = camera.GetCameraPosition();
+        glUniform3f(shader->GetEyePositionUniform(), camPos.x, camPos.y, camPos.z);
+
+        glm::mat4 model(1.0f);
+        model = glm::translate(model, glm::vec3(0.f, 0.f, -2.5f));
+        //model = glm::rotate(model, curAngle * toRadians, glm::vec3(0.f, 1.f, 0.0f));
+        //model = glm::scale(model, glm::vec3(curSize, curSize, curSize));
+
+        glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
         brickTex.UseTexture();
+        shinyMat.UseMaterial(shader->GetSpecularIntensityUniform(), shader->GetShininessUniform());
         mainLight.UseLight(shader->GetAmbientIntensityLocation(), shader->GetAmbientColorLocation(),
             shader->GetDiffuseIntensityUniform(), shader->GetDirectionUniform());
 
