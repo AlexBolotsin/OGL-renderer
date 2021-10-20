@@ -67,12 +67,12 @@ int GLWindow::Initialize()
 
 GLint GLWindow::GetBufferWidth() const
 {
-    return GLint();
+    return width;
 }
 
 GLint GLWindow::GetBufferHeight() const
 {
-    return GLint();
+    return height;
 }
 
 void GLWindow::CreateCallbacks()
