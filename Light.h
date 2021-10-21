@@ -6,7 +6,7 @@
 class Light
 {
 public:
-    Light(GLfloat red, GLfloat green, GLfloat blue, GLfloat aintensity, GLfloat dIntensity);
+    Light(glm::vec3 col, GLfloat aintensity, GLfloat dIntensity);
     ~Light();
 
 protected:

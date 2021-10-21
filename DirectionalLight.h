@@ -4,8 +4,9 @@
 class DirectionalLight : public Light
 {
 public:
-    DirectionalLight(GLfloat red, GLfloat green, GLfloat blue, GLfloat aintensity,
-        GLfloat xDir, GLfloat yDir, GLfloat zDir, GLfloat dIntensity);
+    DirectionalLight(glm::vec3 col,
+        GLfloat aintensity, GLfloat dIntensity,
+        glm::vec3 dir);
     ~DirectionalLight();
 
     void UseLight(GLuint ambientIntensityUniform, GLuint ambientColorUniform,

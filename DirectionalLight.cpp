@@ -1,9 +1,10 @@
 #include "DirectionalLight.h"
 
-DirectionalLight::DirectionalLight(GLfloat red, GLfloat green, GLfloat blue, GLfloat aIntensity,
-    GLfloat xDir, GLfloat yDir, GLfloat zDir, GLfloat dIntensity) : Light(red, blue, green, aIntensity, dIntensity)
+DirectionalLight::DirectionalLight(glm::vec3 col,
+    GLfloat aIntensity, GLfloat dIntensity,
+    glm::vec3 dir) : Light(col, aIntensity, dIntensity)
 {
-    direction = glm::vec3(xDir, yDir, zDir);
+    direction = dir;
 
 }
 

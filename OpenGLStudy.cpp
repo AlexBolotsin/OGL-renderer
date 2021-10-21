@@ -11,8 +11,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
 #include "GLWindow.h"
-#include "DirectionalLight.h"
 
 
 float Q_rsqrt(float number)
@@ -176,31 +176,49 @@ int main()
     dirtTex.LoadTexture();
     Texture blankTex("assets/blank.png");
     blankTex.LoadTexture();
-    DirectionalLight mainLight(1.f, 1.f, 1.f, 0.1f,
-        0.0f, 0.0f, -1.f, 0.3f);
+    DirectionalLight mainLight(glm::vec3(1.f, 1.f, 1.f), 0.0f,
+        0.0f, glm::vec3(0.0f, -1.f, 0.3f));
     PointLight pointLights[MAX_POINT_LIGHTS] = {
         {
-            0.f, 1.f, 0.f,
-            0.1f, 1.0f,
-            -2.f, 0.f, 0.f,
+            glm::vec3(0.f, 1.f, 0.f),
+            0.0f, 0.0f,
+            glm::vec3(-2.f, 0.f, 0.f),
             0.3f, 0.2f, 0.1f
-        },
-
-        {
+        }
+        /*{
             0.f, 0.f, 1.f,
-            0.1f, 0.4f,
+            0.1f, 0.1f,
             2.f, 0.f, 0.f,
             0.3f, 0.2f, 0.1f
         },
         {
             0.f, 1.f, 0.f,
-            0.1f, 1.f,
+            0.1f, 0.1f,
             -4.f, 2.f, 0.f,
             0.3f, 0.1f, 0.1f
+        }*/
+    };
+    int pointLightsCount = 0;
+    SpotLight spotLight[MAX_SPOT_LIGHTS] = {
+        {
+            glm::vec3(1.f, 1.f, 1.f),
+            0.0f, 1.0f,
+            glm::vec3(0.f, 0.f, 0.f),
+            glm::vec3(0.f, -1.f, 0.f),
+            1.0f, 0.0f, 0.0f,
+            10.f
+        },
+        {
+            glm::vec3(1.f, 1.f, 1.f),
+            0.0f, 2.0f,
+            glm::vec3(0.f, 1.5f, 0.f),
+            glm::vec3(-100.f, -1.f, 0.f),
+            1.0f, 0.0f, 0.0f,
+            50.f
         }
     };
+    int spotLightsCount = 2;
 
-    int pointLightsCount = 3;
 
     Material shinyMat(1.f, 32*32);
     Material dullMat(0.3f, 4);
@@ -229,28 +247,37 @@ int main()
         glm::vec3 camPos = camera.GetCameraPosition();
         glUniform3f(shader->GetEyePositionUniform(), camPos.x, camPos.y, camPos.z);
 
-        shader->SetDirectionalLight(mainLight);
-        shader->SetPointLights(pointLights, pointLightsCount);
+        //shader->SetDirectionalLight(mainLight);
+        //shader->SetPointLights(pointLights, pointLightsCount);
+        shader->SetSpotLights(spotLight, spotLightsCount);
 
-        glm::mat4 model(1.0f);
-        model = glm::translate(model, glm::vec3(0.f, 0.f, -2.5f));
-        glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
-        brickTex.UseTexture();
-        shinyMat.UseMaterial(shader->GetSpecularIntensityUniform(), shader->GetShininessUniform());
-        meshStorage[0]->RenderMesh();
+        glm::vec3 lowerLigh = camera.GetCameraPosition() - glm::vec3(-0.1f, -0.3f, 0.f);
+        spotLight[0].SetFlash(lowerLigh, camera.GetCameraDirection());
 
-        model = glm::translate(model, glm::vec3(0.f, 0.f, 2.5f));
-        glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
-        dirtTex.UseTexture();
-        dullMat.UseMaterial(shader->GetSpecularIntensityUniform(), shader->GetShininessUniform());
-        meshStorage[0]->RenderMesh();
-
-        model = glm::translate(model, glm::vec3(0.f, -2.f, 0.f));
-        glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
-        blankTex.UseTexture();
-        shinyMat.UseMaterial(shader->GetSpecularIntensityUniform(), shader->GetShininessUniform());
-        meshStorage[2]->RenderMesh();
-
+        {
+            glm::mat4 model(1.0f);
+            model = glm::translate(model, glm::vec3(0.f, 0.f, -2.5f));
+            glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
+            brickTex.UseTexture();
+            shinyMat.UseMaterial(shader->GetSpecularIntensityUniform(), shader->GetShininessUniform());
+            meshStorage[0]->RenderMesh();
+        }
+        {
+            glm::mat4 model(1.0f);
+            model = glm::translate(model, glm::vec3(0.f, 0.f, -5.f));
+            glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
+            dirtTex.UseTexture();
+            dullMat.UseMaterial(shader->GetSpecularIntensityUniform(), shader->GetShininessUniform());
+            meshStorage[0]->RenderMesh();
+        }
+        {
+            glm::mat4 model(1.0f);
+            model = glm::translate(model, glm::vec3(0.f, -2.f, 0.f));
+            glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
+            dirtTex.UseTexture();
+            dullMat.UseMaterial(shader->GetSpecularIntensityUniform(), shader->GetShininessUniform());
+            meshStorage[2]->RenderMesh();
+        }
         glUseProgram(0);
         mainWindow.SwapBuffers();
     }
