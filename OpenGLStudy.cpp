@@ -13,6 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "GLWindow.h"
+#include "Model.h"
 
 
 float Q_rsqrt(float number)
@@ -44,6 +45,26 @@ GLfloat lastTime = 0.f;
 const char shaderVS[] = "shaders/shader.vert";
 
 const char shaderFS[] = "shaders/shader.frag";
+
+void CreateFloor()
+{
+    GLuint floorIndices[] = {
+    0, 2, 1,
+    1, 2, 3
+    };
+
+    GLfloat floorVertices[] = {
+    -10.f, 0.f, -10.f,     0.f, 0.f,   0.0f, -1.0f, 0.0f,
+    10.0f, 0.0f, -10.f,  10.0f, 0.f,   0.0f, -1.0f, 0.0f,
+    -10.f, 0.0f, 10.f,    0.f, 10.f,   0.0f, -1.0f, 0.0f,
+    10.0f, 0.0f, 10.f,    10.f, 10.f,   0.0f, -1.0f, 0.0f
+    };
+    Mesh* floor = new Mesh();
+    floor->CreateMesh(floorVertices, floorIndices, 32, 6);
+    meshStorage.push_back(floor);
+}
+
+
 
 void CreateShaders()
 {
@@ -94,69 +115,6 @@ void CalcAverageNormals(unsigned int* indeces, unsigned int indiceCount,
     }
 }
 
-void CreateObjects()
-{
-    GLuint indices[] = {
-        0, 3, 1,
-        1, 3, 2,
-        2 ,3, 0,
-        0, 1, 2
-    };
-
-    GLfloat vertices[] = {
-        -1.0f, -1.0f, -0.6f,     0.f, 0.f,       0.0f, 0.0f, 0.0f,
-        0.f, -1.0f, 1.0f,       0.5f, 0.f,      0.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, -0.6f,      1.f, 0.5f,       0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,       0.5f, 1.f,      0.0f, 0.0f, 0.0f
-    };
-
-    GLuint floorIndices[] = {
-        0, 2, 1,
-        1, 2, 3
-    };
-
-    GLfloat floorVertices[] = {
-        -10.f, 0.f, -10.f,     0.f, 0.f,   0.0f, -1.0f, 0.0f,
-        10.0f, 0.0f, -10.f,  10.0f, 0.f,   0.0f, -1.0f, 0.0f,
-        -10.f, 0.0f, 10.f,    0.f, 10.f,   0.0f, -1.0f, 0.0f,
-        10.0f, 0.0f, 10.f,    10.f, 10.f,   0.0f, -1.0f, 0.0f
-    };
-
-    CalcAverageNormals(indices, 12, vertices, 32, 8, 5);
-
-    {
-        Mesh* obj = new Mesh();
-        obj->CreateMesh(vertices, indices, 32, 12);
-        meshStorage.push_back(obj);
-    }
-    {
-        Mesh* obj = new Mesh();
-        obj->CreateMesh(vertices, indices, 32, 12);
-        meshStorage.push_back(obj);
-    }
-
-    Mesh* floor = new Mesh();
-    floor->CreateMesh(floorVertices, floorIndices, 32, 6);
-    meshStorage.push_back(floor);
-}
-
-double normalize(const double value, const double start, const double end)
-{
-    const double width = end - start;   // 
-    const double offsetValue = value - start;   // value relative to 0
-
-    return (offsetValue - (floor(offsetValue / width) * width)) + start;
-    // + start to reset back to start of original range
-}
-
-float normalize(const float value, const float start, const float end)
-{
-    const float width = end - start;   // 
-    const float offsetValue = value - start;   // value relative to 0
-
-    return (offsetValue - (floor(offsetValue / width) * width)) + start;
-    // + start to reset back to start of original range
-}
 
 int main()
 {
@@ -166,39 +124,33 @@ int main()
         return 1;
     }
     
-    CreateObjects();
+    CreateFloor();
     CreateShaders();
 
     Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -60.0f, 0.0f, 5.0f, 0.5f);
-    Texture brickTex("assets/brickwork.png");
-    brickTex.LoadTexture();
-    Texture dirtTex("assets/dirt.png");
-    dirtTex.LoadTexture();
-    Texture blankTex("assets/blank.png");
-    blankTex.LoadTexture();
-    DirectionalLight mainLight(glm::vec3(1.f, 1.f, 1.f), 0.0f,
-        0.0f, glm::vec3(0.0f, -1.f, 0.3f));
+    DirectionalLight mainLight(glm::vec3(1.f, 1.f, 1.f), 0.3f,
+        0.3f, glm::vec3(0.0f, -1.f, 0.3f));
     PointLight pointLights[MAX_POINT_LIGHTS] = {
         {
             glm::vec3(0.f, 1.f, 0.f),
-            0.0f, 0.0f,
+            0.3f, 0.3f,
             glm::vec3(-2.f, 0.f, 0.f),
-            0.3f, 0.2f, 0.1f
-        }
-        /*{
-            0.f, 0.f, 1.f,
-            0.1f, 0.1f,
-            2.f, 0.f, 0.f,
             0.3f, 0.2f, 0.1f
         },
         {
+            glm::vec3(0.f, 0.f, 1.f),
+            0.1f, 0.1f,
+            glm::vec3(2.f, 0.f, 0.f),
+            0.3f, 0.2f, 0.1f
+        }
+    /*{
             0.f, 1.f, 0.f,
             0.1f, 0.1f,
             -4.f, 2.f, 0.f,
             0.3f, 0.1f, 0.1f
         }*/
     };
-    int pointLightsCount = 0;
+    int pointLightsCount = 2;
     SpotLight spotLight[MAX_SPOT_LIGHTS] = {
         {
             glm::vec3(1.f, 1.f, 1.f),
@@ -220,10 +172,15 @@ int main()
     int spotLightsCount = 2;
 
 
-    Material shinyMat(1.f, 32*32);
+    Material shinyMat(4.f, 256);
     Material dullMat(0.3f, 4);
 
     glm::mat4 projection = glm::perspective(45.f, (GLfloat)mainWindow.GetBufferWidth()/mainWindow.GetBufferHeight(), 0.1f, 100.f);
+
+    Model robot;
+    robot.LoadModel("models/uh60.obj");
+    //Model xwing;
+    //xwing.LoadModel("models/x-wing/star wars x-wing.obj");
 
     while (!mainWindow.ShouldClose())
     {
@@ -236,7 +193,7 @@ int main()
         camera.KeysControl(mainWindow.GetKeys(), deltaTime);
         camera.MouseControl(mainWindow.GetXChange(), mainWindow.GetYChange());
 
-        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClearColor(0.0, 0.5, 0.5, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         Shader* shader = shaderList[0];
@@ -247,8 +204,8 @@ int main()
         glm::vec3 camPos = camera.GetCameraPosition();
         glUniform3f(shader->GetEyePositionUniform(), camPos.x, camPos.y, camPos.z);
 
-        //shader->SetDirectionalLight(mainLight);
-        //shader->SetPointLights(pointLights, pointLightsCount);
+        shader->SetDirectionalLight(mainLight);
+        shader->SetPointLights(pointLights, pointLightsCount);
         shader->SetSpotLights(spotLight, spotLightsCount);
 
         glm::vec3 lowerLigh = camera.GetCameraPosition() - glm::vec3(-0.1f, -0.3f, 0.f);
@@ -256,28 +213,21 @@ int main()
 
         {
             glm::mat4 model(1.0f);
-            model = glm::translate(model, glm::vec3(0.f, 0.f, -2.5f));
+            model = glm::translate(model, glm::vec3(0.0f, 2.0f, 10.0f));
+            model = glm::rotate(model, -90.f * toRadians, glm::vec3(1.0f, 0.0f, 0.0f));
+            //model = glm::scale(model, glm::vec3(0.01f));
             glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
-            brickTex.UseTexture();
+            shinyMat.UseMaterial(shader->GetSpecularIntensityUniform(), shader->GetShininessUniform());
+            robot.RenderModel();
+        }
+        {
+            glm::mat4 model(1.0f);
+            model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
+            glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
             shinyMat.UseMaterial(shader->GetSpecularIntensityUniform(), shader->GetShininessUniform());
             meshStorage[0]->RenderMesh();
         }
-        {
-            glm::mat4 model(1.0f);
-            model = glm::translate(model, glm::vec3(0.f, 0.f, -5.f));
-            glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
-            dirtTex.UseTexture();
-            dullMat.UseMaterial(shader->GetSpecularIntensityUniform(), shader->GetShininessUniform());
-            meshStorage[0]->RenderMesh();
-        }
-        {
-            glm::mat4 model(1.0f);
-            model = glm::translate(model, glm::vec3(0.f, -2.f, 0.f));
-            glUniformMatrix4fv(shader->GetModelUniform(), 1, GL_FALSE, glm::value_ptr(model));
-            dirtTex.UseTexture();
-            dullMat.UseMaterial(shader->GetSpecularIntensityUniform(), shader->GetShininessUniform());
-            meshStorage[2]->RenderMesh();
-        }
+
         glUseProgram(0);
         mainWindow.SwapBuffers();
     }
