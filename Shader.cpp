@@ -1,4 +1,5 @@
 #include "Shader.h"
+#include <glm/gtc/type_ptr.hpp>
 
 Shader::Shader()
 {
@@ -83,10 +84,10 @@ void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
     uniformModel = glGetUniformLocation(shaderID, "model");
     uniformProjection = glGetUniformLocation(shaderID, "projection");
     uniformView = glGetUniformLocation(shaderID, "view");
-    uniformDirectionalLight.uniformColor = glGetUniformLocation(shaderID, "dirLight.base.color");
-    uniformDirectionalLight.uniformAmbientIntensity = glGetUniformLocation(shaderID, "dirLight.base.ambientIntensity");
-    uniformDirectionalLight.uniformDirection = glGetUniformLocation(shaderID, "dirLight.direction");
-    uniformDirectionalLight.uniformDiffuseIntensity = glGetUniformLocation(shaderID, "dirLight.base.diffuseIntensity");
+    uniformDirectionalLight.uniformColor = glGetUniformLocation(shaderID, "directionalLight.base.color");
+    uniformDirectionalLight.uniformAmbientIntensity = glGetUniformLocation(shaderID, "directionalLight.base.ambientIntensity");
+    uniformDirectionalLight.uniformDirection = glGetUniformLocation(shaderID, "directionalLight.direction");
+    uniformDirectionalLight.uniformDiffuseIntensity = glGetUniformLocation(shaderID, "directionalLight.base.diffuseIntensity");
     uniformEyePosition = glGetUniformLocation(shaderID, "eyePosition");
     uniformSpecularEntensity = glGetUniformLocation(shaderID, "material.specularIntensity");
     uniformShininess = glGetUniformLocation(shaderID, "material.shininess");
@@ -152,6 +153,10 @@ void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
         snprintf(locBuff, sizeof(locBuff), "spotLights[%d].edge", i);
         uniformSpotLight[i].uniformEdge = glGetUniformLocation(shaderID, locBuff);
     }
+
+    uniformTexture = glGetUniformLocation(shaderID, "theTexture");
+    uniformDirectionalLightTransform = glGetUniformLocation(shaderID, "directionalLightTransform");
+    uniformDirectionalShadowMap = glGetUniformLocation(shaderID, "directionalShadowMap");
 }
 
 void Shader::AddShader(const char* shaderCode, GLenum shaderType)
@@ -222,6 +227,21 @@ void Shader::SetSpotLights(const SpotLight* slights, unsigned int count)
             uniformSpotLight[i].uniformExponent,
             uniformSpotLight[i].uniformEdge);
     }
+}
+
+void Shader::SetTexture(GLuint texture)
+{
+    glUniform1i(uniformTexture, texture);
+}
+
+void Shader::SetDirectionalShadowMap(GLuint textuteUnit)
+{
+    glUniform1i(uniformDirectionalShadowMap, textuteUnit);
+}
+
+void Shader::SetDirectionalLightTransform(const glm::mat4& transform)
+{
+    glUniformMatrix4fv(uniformDirectionalLightTransform, 1, GL_FALSE, glm::value_ptr(transform));
 }
 
 void Shader::UseShader()

@@ -5,7 +5,7 @@ class SpotLight :
 {
 public:
     SpotLight() {}
-    SpotLight(glm::vec3 col, GLfloat aIntensity, GLfloat dIntensity,
+    SpotLight(glm::vec2 shadowSize, glm::vec3 col, GLfloat aIntensity, GLfloat dIntensity,
         glm::vec3 pos, glm::vec3 dir,
         GLfloat con, GLfloat lin, GLfloat exp, GLfloat edg);
     ~SpotLight();

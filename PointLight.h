@@ -5,8 +5,8 @@
 class PointLight : public Light
 {
 public:
-    PointLight() : Light(glm::vec3(0.0f, 0.0f, 0.0f), 0.f, 0.f) {}
-    PointLight(glm::vec3 color,
+    PointLight() : Light() {}
+    PointLight(glm::vec2 shadowSize, glm::vec3 color,
         GLfloat aIntensity, GLfloat dIntensity,
         glm::vec3 pos,
         GLfloat con, GLfloat lin, GLfloat exp);

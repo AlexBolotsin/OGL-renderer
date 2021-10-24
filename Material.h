@@ -3,6 +3,7 @@
 class Material
 {
 public:
+    Material() {}
     Material(GLfloat sIntensity, GLfloat shine);
     ~Material();
 

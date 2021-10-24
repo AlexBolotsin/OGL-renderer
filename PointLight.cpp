@@ -1,8 +1,8 @@
 #include "PointLight.h"
 
-PointLight::PointLight(glm::vec3 color, GLfloat aintensity, GLfloat dIntensity,
+PointLight::PointLight(glm::vec2 shadowSize, glm::vec3 color, GLfloat aintensity, GLfloat dIntensity,
     glm::vec3 pos,
-    GLfloat con, GLfloat lin, GLfloat exp) : Light(color, aintensity, dIntensity)
+    GLfloat con, GLfloat lin, GLfloat exp) : Light(shadowSize, color, aintensity, dIntensity)
 {
     position = pos;
     constant = con;

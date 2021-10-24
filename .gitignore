@@ -1,4 +1,5 @@
 *.dll
+*.bak
 x64/*
 Debug/*
 .vs/*

@@ -38,6 +38,9 @@ public:
     void SetDirectionalLight(const DirectionalLight& dLight);
     void SetPointLights(const PointLight* plights, unsigned int count);
     void SetSpotLights(const SpotLight* slights, unsigned int count);
+    void SetTexture(GLuint texture);
+    void SetDirectionalShadowMap(GLuint textuteUnit);
+    void SetDirectionalLightTransform(const glm::mat4& transform);
 
     void UseShader();
     void ClearShader();
@@ -52,7 +55,10 @@ private:
         uniformView,
         uniformEyePosition,
         uniformSpecularEntensity,
-        uniformShininess;
+        uniformShininess,
+        uniformTexture,
+        uniformDirectionalLightTransform,
+        uniformDirectionalShadowMap;
 
     struct {
         GLuint uniformColor;

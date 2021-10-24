@@ -8,6 +8,7 @@
 class GLWindow
 {
 public:
+    GLWindow() {}
     GLWindow(GLint windowWidth, GLint windowHeight);
     ~GLWindow();
 
