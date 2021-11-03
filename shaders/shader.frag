@@ -40,6 +40,12 @@ struct SpotLight
     float edge;
 };
 
+struct OmniShadowMap
+{
+    samplerCube shadowMap;
+    float farPlane;
+};
+
 struct Material
 {
     float specularIntensity;
@@ -55,6 +61,7 @@ uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 
 uniform sampler2D theTexture;
 uniform sampler2D directionalShadowMap;
+uniform OmniShadowMap omniShadowMaps[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
 
 uniform Material material;
 
@@ -94,6 +101,37 @@ float CalcDirectionalShadowFactor(DirectionalLight light)
     return shadow;
 }
 
+vec3 gridSamplingDisk[20] = vec3[]
+(
+   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
+   vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+   vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
+   vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
+   vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+);
+
+float CalcOmniShadowFactor(PointLight light, int shadowIndex)
+{
+	vec3 fragToLight = FragPos - light.position;
+	float currentDepth = length(fragToLight);
+	
+	float shadow = 0.0;
+	float bias   = 0.15;
+	int samples  = 20;
+	float viewDistance = length(eyePosition - FragPos);
+	float diskRadius = (1.0 + (viewDistance / omniShadowMaps[shadowIndex].farPlane)) / 25.0;
+	for(int i = 0; i < samples; ++i)
+	{
+		float closestDepth = texture(omniShadowMaps[shadowIndex].shadowMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
+		closestDepth *= omniShadowMaps[shadowIndex].farPlane;   // Undo mapping [0;1]
+		if(currentDepth - bias > closestDepth)
+			shadow += 1.0;
+	}
+	shadow /= float(samples);  
+	
+	return shadow;
+}
+
 vec4 CalcLightByDirection(Light light, vec3 direction, float shadowFactor)
 {
     vec4 ambientColor = vec4(light.color, 1.0) * light.ambientIntensity;
@@ -125,26 +163,28 @@ vec4 CalcDirectionalLight()
     return CalcLightByDirection(directionalLight.base, directionalLight.direction, shadowFactor);
 }
 
-vec4 CalcPointLight(PointLight pLight)
+vec4 CalcPointLight(PointLight pLight, int shadowIndex)
 {
     vec3 direction = FragPos - pLight.position;
     float distance = length(direction);
     direction = normalize(direction);
 
-    vec4 color = CalcLightByDirection(pLight.base, direction, 0.0);
+    float shadowFactor = CalcOmniShadowFactor(pLight, shadowIndex);
+
+    vec4 color = CalcLightByDirection(pLight.base, direction, shadowFactor);
     float attenuation = 1.0 / (pLight.exponent * distance * distance + pLight.linear * distance + pLight.constant);
 
     return color * attenuation;
 }
 
-vec4 CalcSpotLight(SpotLight sLight)
+vec4 CalcSpotLight(SpotLight sLight, int shadowIndex)
 {
     vec3 rayDirection = normalize(FragPos - sLight.base.position);
     float slFactor = dot(rayDirection, sLight.direction);
 
     if (slFactor > sLight.edge)
     {
-        vec4 colour = CalcPointLight(sLight.base);
+        vec4 colour = CalcPointLight(sLight.base, shadowIndex);
 
         return colour * (1.0f - (1.0f - slFactor)*(1.0f/(1.0f - sLight.edge)));;
     }
@@ -159,7 +199,7 @@ vec4 CalcPointLights()
     vec4 totalColor = vec4(0.0, 0.0, 0.0, 0.0);
     for (int i = 0; i < pointLightCount; ++i)
     {
-        totalColor += CalcPointLight(pointLights[i]);
+        totalColor += CalcPointLight(pointLights[i], i);
     }
     return totalColor;
 }
@@ -169,7 +209,7 @@ vec4 CalcSpotLights()
     vec4 totalColor = vec4(0.0, 0.0, 0.0, 0.0);
     for (int i = 0; i < spotLightCount; ++i)
     {
-        totalColor += CalcSpotLight(spotLights[i]);
+        totalColor += CalcSpotLight(spotLights[i], i + pointLightCount);
     }
     return totalColor;
 }

@@ -24,7 +24,7 @@ public:
     void SwapBuffers() { glfwSwapBuffers(mainWindow); }
 
     void SetKey(int key, bool state) { keys[key] = state; }
-    const bool* GetKeys() const { return keys; }
+    bool* GetKeys() { return keys; }
 
     GLfloat GetXChange() { GLfloat val = xChange; xChange = 0.f; return val; }
     GLfloat GetYChange() { GLfloat val = yChange; yChange = 0.f; return val; }
